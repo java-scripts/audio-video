@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <!--<link rel="stylesheet" href="css/bootstrap.min.css" />  -->
+    <script data-require="jquery@*" data-semver="2.1.3" src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <link data-require="bootstrap-css@*" data-semver="3.3.1" rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" />
+   <style>
+ .player{height: 30px;vertical-align: top;background: #424242;color: #A2A2A2;cursor: pointer;}
+li{color:#A5A5A5;cursor: pointer;}
+li.active{color:#000;}
+progress{
+width: 100%;
+}
+   </style>
+  </head>
+
+  <body>
+    <h1>
+      Motion Detection Alarm
+      </h1>
+    <table class="table table-bordered">
+      <tbody>
+        <tr>
+          <td>Step 1</td>
+          <td>
+            <button class="btn btn-primary" onclick="$('#multifile').click();">Choose Audio</button>
+            <input type="file" id="multifile" multiple="" style="display:none;" accept=".mp3,.wav" />
+          </td>
+          <td>
+            <input type="button" value="<<" id="prev" class="player" />
+            <audio id="audio-player" name="audio-player" src="" controls=""></audio>
+            <input type="button" value=">>" id="next" class="player" />
+            <hr />
+
+
+		Audio File Duration 
+		                        <select id="audioDuration">
+              <option value="5000" selected="">05 Sec</option>
+              <option value="10000" selected="">10 Sec</option>
+              <option value="15000" selected="">15 Sec</option>
+            </select>
+            <hr />
+            <ul id="playlist"></ul>
+          </td>
+          <td>
+            <div id="step1Result">
+          Click on Choose Audio and select any Audio File or Files. 
+		                              <br />
+
+Wait until step1 is done....
+        </div>
+            <div style="display:none;">
+			done............                            <br />
+
+
+			The Audio triggers when the Motion Indicator level goes beyond the Threshold
+			                            <br />
+
+
+			Execute step2.
+		</div>
+          </td>
+        </tr>
+        <tr>
+          <td>Step 2</td>
+          <td>
+            <button class="btn btn-primary" id="startWebcamBtn" disabled="" onclick="startWebCam();">Start WebCam</button>
+          </td>
+          <td>
+            <video id="video" width="80" height="60"></video>
+            <canvas id="canvas" width="80" height="60" class="hide"></canvas>
+            <hr />
+
+
+		
+		  Motion Indicator
+		                          <progress id="progress" value="10" max="100" class="control"></progress>
+          </td>
+          <td>
+            <div id="step2Result">
+          Click on Start WebCam button.                            <br />
+
+
+		  When browser wants to use your camera, Click on Allow or Share your Camera.
+        </div>
+            <div style="display:none;">
+			done............                            <br />
+
+
+			Execute step3......
+			
+		</div>
+          </td>
+        </tr>
+        <tr>
+          <td>Step 3</td>
+          <td>
+        Motion Threshold
+      </td>
+          <td>
+            <input type="range" value="110" min="0" max="110" id="threshold" class="control" />
+          </td>
+          <td>
+            <div id="step3Result">
+		Once you observe Motion Indicator fluctuation, adjust the Motion Threshold just above the Indicator level. 
+		                            <br />
+
+
+		Now you just move to see the result.....	
+		</div>
+            <div style="display:none;">
+			done............                            <br />
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!--<script src="js/jquery.min.js"></script>-->
+    <script src="js/audiovideo.js"></script>
+    <script src="js/controller.js"></script>
+    <script>
+    var files, fileIndex = 0,
+      $playlist = $('#playlist'),
+      audioplayer = $('#audio-player')[0];
+    $('#multifile').change(function() {
+      files = this.files;
+      setAudioSrc(0, function() {
+        $('#step1Result').hide().next().show();
+        $('#startWebcamBtn').removeAttr('disabled');
+      });
+    });
+
+    function showPlaylist(index) {
+      $playlist.empty();
+      $.each(files, function(i, file) {
+        var cls = index == i ? "active" : "";
+        $playlist.append('<li class="' + cls + '" onclick="setAudioSrc(' + i + ')">' + file.name + '</li>');
+      });
+    }
+    $('#next').click(function() {
+      fileIndex = (fileIndex + 1) % files.length;
+      setAudioSrc(fileIndex);
+    });
+    $('#prev').click(function() {
+      fileIndex = (fileIndex - 1 + files.length) % files.length;
+      setAudioSrc(fileIndex);
+    });
+
+    function setAudioSrc(index, fn) {
+      file = files[index];
+      showPlaylist(index);
+      readFileAsDataURL(file, function(result) {
+        audioplayer.src = result;
+        if (fn) fn();
+      });
+    }
+     //util method
+    function readFileAsDataURL(file, fn) {
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        fn(evt.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+	var isTriggered=false;	
+	function playAudio(progressVal){		
+		if(progressVal>$('#threshold').val()*1 && progressVal < 110 && !isTriggered){
+			console.log('playing.....');
+			$('#step3Result').hide().next().show();
+			audioplayer.play();
+			isTriggered=true;
+			window.setTimeout(function(){
+				isTriggered=false;
+				$('#next').click();
+			},$('#audioDuration').val()*1);
+		}		
+	}
+  </script>
+  </body>
+
+</html>
