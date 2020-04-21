@@ -27,7 +27,7 @@ startWebCamVideo = function(options) {
     navigator.getUserMedia(settings,
       function(stream) {
         var url = window.URL || window.webkitURL;
-        target.src = url ? url.createObjectURL(stream) : stream;
+        target.srcObject = stream;
         target.play();
       },
       function(error) {
